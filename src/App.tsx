@@ -176,7 +176,7 @@ export default function App() {
   const addLog = async (food: FoodItem, portion: PortionType) => {
     if (!user) return;
     
-    let baseScore = food.antioxidantScore * PORTION_MULTIPLIERS[portion] * 10;
+    let baseScore = food.antioxidantScore * PORTION_MULTIPLIERS[portion];
     
     // Penalty for Junk Food
     if (food.category === 'Junk Food') {
@@ -472,7 +472,7 @@ export default function App() {
                         <span className="text-sm font-semibold text-text-main">{type === 'palm' ? 'Base Serving' : type === 'fist' ? 'Fibrous Volume' : type === 'handful' ? 'Concentrated' : 'Small Dose'}</span>
                         <div className={`mt-3 text-xs font-mono ${selectedFood.category === 'Junk Food' ? 'text-accent-berry' : 'text-accent-green'}`}>
                           {selectedFood.category === 'Junk Food' ? '-' : '+'}{Math.abs(Math.round(
-                            (selectedFood.category === 'Junk Food' ? -10 : selectedFood.antioxidantScore * 10) * PORTION_MULTIPLIERS[type]
+                            (selectedFood.category === 'Junk Food' ? -10 : selectedFood.antioxidantScore) * PORTION_MULTIPLIERS[type]
                           ))} PTS
                         </div>
                       </button>
