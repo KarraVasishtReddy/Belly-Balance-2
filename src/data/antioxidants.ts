@@ -65,4 +65,13 @@ export const ANTIOXIDANT_DATA: FoodItem[] = [
   { id: '60', name: 'Masala Chai', category: 'Beverages', antioxidantScore: 1.8, emoji: '☕' },
   { id: '61', name: 'Pav Bhaji', category: 'Indian Main', antioxidantScore: 0.8, emoji: '🍞' },
   { id: '62', name: 'Chole Bhature', category: 'Indian Main', antioxidantScore: 0.6, emoji: '🍩' },
+  { id: '63', name: 'Oats', category: 'Grains', antioxidantScore: 0.4, emoji: '🥣' },
+  { id: '64', name: 'Chia Seeds', category: 'Seeds', antioxidantScore: 0.9, emoji: '🌚' },
+  { id: '65', name: 'Chocolate Milk', category: 'Beverages', antioxidantScore: 0.5, emoji: '🧋' },
+  { id: '66', name: 'Regular Milk', category: 'Beverages', antioxidantScore: 0.05, emoji: '🥛' },
+  { id: '67', name: 'Chia Pudding with Fruits', category: 'Sweets', antioxidantScore: 2.5, emoji: '🍮' },
+  { id: '68', name: 'Banana', category: 'Fruits', antioxidantScore: 0.4, emoji: '🍌' },
+  { id: '69', name: 'Guava', category: 'Fruits', antioxidantScore: 1.5, emoji: '🍐' },
+  { id: '70', name: 'Pear', category: 'Fruits', antioxidantScore: 0.3, emoji: '🍐' },
+  { id: '71', name: 'Pineapple', category: 'Fruits', antioxidantScore: 0.3, emoji: '🍍' },
 ];

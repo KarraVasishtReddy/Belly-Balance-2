@@ -261,23 +261,38 @@ export default function App() {
         <section className="relative flex flex-col items-center py-4">
           <div className="relative w-64 h-64 phyto-ring-inner rounded-full border-8 border-border flex items-center justify-center shadow-[0_0_80px_rgba(0,0,0,0.4)]">
             {/* Circular Progress */}
-            <svg className="absolute inset-0 w-full h-full transform -rotate-90 pointer-events-none p-1">
+            <svg 
+              className="absolute inset-0 w-full h-full transform -rotate-90 pointer-events-none" 
+              viewBox="0 0 256 256"
+            >
+              {/* Background Track */}
+              <circle
+                cx="128"
+                cy="128"
+                r="116"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="text-white/5"
+              />
+              {/* Progress Circle */}
               <motion.circle
-                cx="124"
-                cy="124"
+                cx="128"
+                cy="128"
                 r="116"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="8"
                 strokeDasharray={728.85}
+                strokeLinecap="round"
                 initial={{ strokeDashoffset: 728.85 }}
-                animate={{ strokeDashoffset: 728.85 - (728.85 * progress) / 100 }}
-                transition={{ duration: 1.5, ease: "easeInOut" }}
-                className="text-accent-green stroke-cap-round"
+                animate={{ strokeDashoffset: 728.85 - (728.85 * Math.min(progress, 100)) / 100 }}
+                transition={{ duration: 1.5, ease: "circOut" }}
+                className="text-accent-green"
               />
             </svg>
             
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center z-10">
               <div className="bg-accent-berry/20 text-accent-berry border border-accent-berry/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest mb-2">
                 Daily Progress
               </div>
