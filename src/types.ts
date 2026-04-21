@@ -7,6 +7,7 @@ export interface FoodItem {
 }
 
 export type PortionType = 'palm' | 'fist' | 'handful' | 'thumb';
+export type AppMode = 'balanced' | 'dieting' | 'digestion';
 
 export interface LogEntry {
   id: string;

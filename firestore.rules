@@ -14,7 +14,8 @@ service cloud.firestore {
     function isValidUser(data) {
       return data.uid == request.auth.uid &&
              data.displayName is string && data.displayName.size() <= 120 &&
-             data.photoURL is string && data.photoURL.size() <= 600;
+             data.photoURL is string && data.photoURL.size() <= 600 &&
+             data.activeMode in ['balanced', 'dieting', 'digestion'];
     }
 
     function isValidLog(data) {
@@ -29,8 +30,8 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isSignedIn() && userId == request.auth.uid;
       allow create: if isSignedIn() && userId == request.auth.uid && 
-                       incoming().keys().hasAll(['uid', 'email', 'displayName', 'photoURL', 'createdAt']) &&
-                       incoming().keys().size() == 5 &&
+                       incoming().keys().hasAll(['uid', 'email', 'displayName', 'photoURL', 'createdAt', 'activeMode']) &&
+                       incoming().keys().size() == 6 &&
                        incoming().createdAt == request.time &&
                        isValidUser(incoming());
       allow update: if isSignedIn() && userId == request.auth.uid && 
@@ -38,7 +39,7 @@ service cloud.firestore {
                        incoming().email == existing().email &&
                        incoming().createdAt == existing().createdAt &&
                        isValidUser(incoming()) &&
-                       incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL']);
+                       incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'activeMode']);
 
       match /logs/{logId} {
         allow list, get: if isSignedIn() && userId == request.auth.uid;

@@ -23,13 +23,11 @@ import {
   User as UserIcon
 } from 'lucide-react';
 import { ANTIOXIDANT_DATA } from './data/antioxidants';
-import { FoodItem, LogEntry, PortionType, PORTION_MULTIPLIERS, BADGES, Badge } from './types';
+import { FoodItem, LogEntry, PortionType, PORTION_MULTIPLIERS, BADGES, Badge, AppMode } from './types';
 import { auth, db, signInWithGoogle } from './lib/firebase';
 import { Logo } from './components/Logo';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
-import { collection, onSnapshot, doc, setDoc, deleteDoc, query, orderBy, serverTimestamp, getDoc } from 'firebase/firestore';
-
-const DAILY_GOAL = 50; // Daily Belly Balance points goal
+import { collection, onSnapshot, doc, setDoc, deleteDoc, query, orderBy, serverTimestamp, getDoc, updateDoc } from 'firebase/firestore';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -40,6 +38,15 @@ export default function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [activeTab, setActiveTab] = useState<'journal' | 'milestones'>('journal');
+  const [activeMode, setActiveMode] = useState<AppMode>('balanced');
+
+  const DAILY_GOAL = useMemo(() => {
+    switch (activeMode) {
+      case 'dieting': return 75;
+      case 'digestion': return 65;
+      default: return 50;
+    }
+  }, [activeMode]);
 
   // Badge Logic
   const earnedBadges = useMemo(() => {
@@ -89,29 +96,46 @@ export default function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
-      setLoading(false);
       
       if (u) {
         // Ensure user profile exists for rules compatibility
         const userRef = doc(db, 'users', u.uid);
         try {
           const userSnap = await getDoc(userRef);
-          if (!userSnap.exists()) {
+          if (userSnap.exists()) {
+            const data = userSnap.data();
+            if (data.activeMode) {
+              setActiveMode(data.activeMode as AppMode);
+            }
+          } else {
             await setDoc(userRef, {
               uid: u.uid,
               email: u.email,
               displayName: u.displayName,
               photoURL: u.photoURL,
-              createdAt: serverTimestamp()
+              createdAt: serverTimestamp(),
+              activeMode: 'balanced'
             });
           }
         } catch (err) {
           console.error("User sync failed:", err);
         }
       }
+      setLoading(false);
     });
     return unsubscribe;
   }, []);
+
+  const changeMode = async (mode: AppMode) => {
+    if (!user) return;
+    setActiveMode(mode);
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, { activeMode: mode });
+    } catch (err) {
+      console.error("Failed to update mode:", err);
+    }
+  };
 
   // Firestore Sync
   useEffect(() => {
@@ -268,12 +292,26 @@ export default function App() {
       <main className="max-w-xl mx-auto px-6 pt-8 space-y-10">
         
         {/* User Greet */}
-        <div className="flex items-center gap-4 px-2">
-           <img src={user.photoURL || ''} className="w-10 h-10 rounded-full border border-border shadow-sm" alt="Profile" />
-           <div>
-             <p className="text-xs text-text-dim uppercase tracking-widest font-bold">Welcome back,</p>
-             <h2 className="font-display text-lg text-white">{user.displayName}</h2>
-           </div>
+        <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-4">
+               <img src={user.photoURL || ''} className="w-10 h-10 rounded-full border border-border shadow-sm" alt="Profile" />
+               <div>
+                 <p className="text-xs text-text-dim uppercase tracking-widest font-bold">Health Profile,</p>
+                 <h2 className="font-display text-lg text-white">{user.displayName}</h2>
+               </div>
+            </div>
+            
+            <div className="flex bg-surface p-1 rounded-xl border border-border">
+                {(['balanced', 'dieting', 'digestion'] as AppMode[]).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => changeMode(m)}
+                    className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-tighter transition-all ${activeMode === m ? 'bg-accent-green text-bg shadow-lg' : 'text-text-dim hover:text-white'}`}
+                  >
+                    {m}
+                  </button>
+                ))}
+            </div>
         </div>
         
         {/* Score Card / Phyto-Ring */}
@@ -326,8 +364,8 @@ export default function App() {
             <h2 className="text-2xl font-display font-medium">Optimization Status: <span className="text-accent-green">{progress >= 100 ? 'Optimal' : progress > 50 ? 'Steady' : 'Building'}</span></h2>
             <p className="text-text-dim text-sm max-w-xs mx-auto leading-relaxed">
               {progress >= 100 
-                ? "Your cellular recovery intake is peak. You've hit the top percentile for antioxidant optimization."
-                : `Aim for ${Math.max(0, DAILY_GOAL - Math.round(todayScore))} more points to reach your daily oxidative balance goal.`}
+                ? (activeMode === 'dieting' ? "Metabolic shield active. Your restrictive intake choice is supported by peak antioxidants." : "Your cellular recovery intake is peak. You've hit the top percentile for antioxidant optimization.")
+                : (activeMode === 'digestion' ? `Slow transit log detected. Aim for ${Math.max(0, DAILY_GOAL - Math.round(todayScore))} more points to stimulate oxidative clearing.` : `Aim for ${Math.max(0, DAILY_GOAL - Math.round(todayScore))} more points to reach your daily oxidative balance goal.`)}
             </p>
           </div>
         </section>
@@ -572,9 +610,16 @@ export default function App() {
                 </div>
 
                 <div className="bg-bg border border-dashed border-border p-4 rounded-xl shadow-inner">
-                  <span className="text-[10px] text-accent-berry uppercase tracking-widest block mb-1 font-bold">Health Insight</span>
+                  <span className="text-[10px] text-accent-berry uppercase tracking-widest block mb-1 font-bold">
+                    {activeMode === 'digestion' ? 'Digestion Booster' : activeMode === 'dieting' ? 'Metabolic Guidance' : 'Health Insight'}
+                  </span>
                   <p className="text-[11px] text-text-dim leading-relaxed">
-                    Based on your patterns, increasing ingestion of <span className="text-text-main">Berries</span> and <span className="text-text-main">Cinnamon</span> by 15% will significantly optimize your daily Belly Balance and oxidative balance.
+                    {activeMode === 'digestion' 
+                      ? "Increase hydration and fiber-rich berries to alleviate slow transit. Focus on blackberries and spinach."
+                      : activeMode === 'dieting'
+                      ? "Restrictive diets can increase oxidative stress. Ensure high antioxidant density from spices like Cloves."
+                      : `Based on your patterns, increasing ingestion of Berries and Cinnamon by 15% will significantly optimize your daily Belly Balance and oxidative balance.`
+                    }
                   </p>
                 </div>
               </motion.div>
