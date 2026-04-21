@@ -27,7 +27,7 @@ import { FoodItem, LogEntry, PortionType, PORTION_MULTIPLIERS, BADGES, Badge } f
 import { auth, db, signInWithGoogle } from './lib/firebase';
 import { Logo } from './components/Logo';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
-import { collection, onSnapshot, doc, setDoc, deleteDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, deleteDoc, query, orderBy, serverTimestamp, getDoc } from 'firebase/firestore';
 
 const DAILY_GOAL = 50; // Daily Belly Balance points goal
 
@@ -87,9 +87,28 @@ export default function App() {
 
   // Auth Listener
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       setLoading(false);
+      
+      if (u) {
+        // Ensure user profile exists for rules compatibility
+        const userRef = doc(db, 'users', u.uid);
+        try {
+          const userSnap = await getDoc(userRef);
+          if (!userSnap.exists()) {
+            await setDoc(userRef, {
+              uid: u.uid,
+              email: u.email,
+              displayName: u.displayName,
+              photoURL: u.photoURL,
+              createdAt: serverTimestamp()
+            });
+          }
+        } catch (err) {
+          console.error("User sync failed:", err);
+        }
+      }
     });
     return unsubscribe;
   }, []);
@@ -128,7 +147,7 @@ export default function App() {
       .reduce((sum, log) => sum + log.score, 0);
   }, [logs]);
 
-  const progress = Math.min((todayScore / DAILY_GOAL) * 100, 100);
+  const progress = Math.max(0, Math.min((todayScore / DAILY_GOAL) * 100, 100));
 
   const addLog = async (food: FoodItem, portion: PortionType) => {
     if (!user) return;
@@ -371,8 +390,8 @@ export default function App() {
                               <p className="text-[10px] text-text-dim uppercase tracking-wider">{food.category}</p>
                             </div>
                           </div>
-                          <div className="text-accent-berry text-[10px] font-bold font-mono">
-                            {food.antioxidantScore} mmol
+                          <div className="text-accent-berry text-[10px] font-bold font-mono uppercase">
+                            {food.category === 'Junk Food' ? 'Oxidative Burden' : `${food.antioxidantScore} mmol`}
                           </div>
                         </button>
                       ))

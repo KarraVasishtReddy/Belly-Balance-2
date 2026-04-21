@@ -22,7 +22,7 @@ service cloud.firestore {
              data.id is string && data.id.size() <= 64 &&
              data.foodId is string && data.foodId.size() <= 64 &&
              data.portion in ['palm', 'fist', 'handful', 'thumb'] &&
-             data.score is number && data.score >= 0 && data.score <= 5000 &&
+             data.score is number && data.score >= -1000 && data.score <= 5000 &&
              data.timestamp is number;
     }
 
