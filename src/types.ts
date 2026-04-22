@@ -51,9 +51,9 @@ export const BADGES: Badge[] = [
   {
     id: 'antioxidant-king',
     title: 'Oxidative Shield',
-    description: 'Reached a daily score over 100 points.',
+    description: 'Reached a daily score over 50 points.',
     icon: '🛡️',
-    requirement: '100+ points in one day'
+    requirement: '50+ points in one day'
   }
 ];
 

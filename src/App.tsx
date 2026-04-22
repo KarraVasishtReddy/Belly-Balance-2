@@ -11,7 +11,7 @@ import {
   TrendingUp, 
   Plus, 
   Info, 
-  X, 
+  X,
   Zap, 
   Trophy,
   Activity,
@@ -42,9 +42,9 @@ export default function App() {
 
   const DAILY_GOAL = useMemo(() => {
     switch (activeMode) {
-      case 'dieting': return 75;
-      case 'digestion': return 65;
-      default: return 50;
+      case 'dieting': return 25;
+      case 'digestion': return 20;
+      default: return 15;
     }
   }, [activeMode]);
 
@@ -60,7 +60,7 @@ export default function App() {
       const date = new Date(log.timestamp).toDateString();
       dayScores[date] = (dayScores[date] || 0) + log.score;
     });
-    if (Object.values(dayScores).some(score => score >= 100)) earned.push('antioxidant-king');
+    if (Object.values(dayScores).some(score => score >= 50)) earned.push('antioxidant-king');
 
     // 7-day streak calculation
     const dates = Object.keys(dayScores).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
@@ -306,9 +306,10 @@ export default function App() {
                   <button
                     key={m}
                     onClick={() => changeMode(m)}
-                    className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-tighter transition-all ${activeMode === m ? 'bg-accent-green text-bg shadow-lg' : 'text-text-dim hover:text-white'}`}
+                    className={`px-3 py-1.5 rounded-lg flex flex-col items-center transition-all ${activeMode === m ? 'bg-accent-green text-bg shadow-lg' : 'text-text-dim hover:text-white'}`}
                   >
-                    {m}
+                    <span className="text-[9px] font-bold uppercase tracking-tighter">{m}</span>
+                    <span className="text-[8px] font-mono opacity-60">Goal: {m === 'dieting' ? 25 : m === 'digestion' ? 20 : 15}</span>
                   </button>
                 ))}
             </div>
@@ -351,12 +352,15 @@ export default function App() {
             
             <div className="flex flex-col items-center z-10">
               <div className="bg-accent-berry/20 text-accent-berry border border-accent-berry/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest mb-2">
-                Daily Progress
+                Daily Goal: {DAILY_GOAL}
               </div>
-              <span className="text-6xl font-display font-light text-white leading-none">
-                {Math.round(todayScore)}
-              </span>
-              <span className="text-xs font-medium text-accent-green uppercase tracking-[0.2em] mt-2">Belly Balance</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-6xl font-display font-light text-white leading-none">
+                  {Math.round(todayScore)}
+                </span>
+                <span className="text-xl text-text-dim/40 font-display">/ {DAILY_GOAL}</span>
+              </div>
+              <span className="text-xs font-medium text-accent-green uppercase tracking-[0.2em] mt-2 text-center">Belly Balance pts</span>
             </div>
           </div>
           
@@ -364,8 +368,8 @@ export default function App() {
             <h2 className="text-2xl font-display font-medium">Optimization Status: <span className="text-accent-green">{progress >= 100 ? 'Optimal' : progress > 50 ? 'Steady' : 'Building'}</span></h2>
             <p className="text-text-dim text-sm max-w-xs mx-auto leading-relaxed">
               {progress >= 100 
-                ? (activeMode === 'dieting' ? "Metabolic shield active. Your restrictive intake choice is supported by peak antioxidants." : "Your cellular recovery intake is peak. You've hit the top percentile for antioxidant optimization.")
-                : (activeMode === 'digestion' ? `Slow transit log detected. Aim for ${Math.max(0, DAILY_GOAL - Math.round(todayScore))} more points to stimulate oxidative clearing.` : `Aim for ${Math.max(0, DAILY_GOAL - Math.round(todayScore))} more points to reach your daily oxidative balance goal.`)}
+                ? (activeMode === 'dieting' ? "Metabolic shield active. Your intake is supported by peak antioxidants." : "Cellular recovery is optimal. You've hit your daily target.")
+                : `Aim for ${Math.max(0, DAILY_GOAL - Math.round(todayScore))} more points to reach your ${activeMode} balance goal.`}
             </p>
           </div>
         </section>
